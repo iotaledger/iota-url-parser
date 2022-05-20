@@ -1,4 +1,4 @@
-name: 'format / lint'
+name: 'format and lint'
 
 on:
   pull_request:
