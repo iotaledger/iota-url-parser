@@ -27,9 +27,8 @@ export function parse(uri: DeepLinkUri): IDeepLink | undefined {
         return parseRawTokens(tokens, queryString)
     } catch (error) {
         console.error(error)
+        throw error
     }
-
-    return undefined
 }
 
 function parseRawTokens(tokens: string[], queryString = ''): IDeepLink {

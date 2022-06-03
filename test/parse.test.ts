@@ -1,4 +1,4 @@
-import { IDeepLink } from '@src/deep-link'
+import { IDeepLink, InvalidDeepLinkFormatError } from '@src/deep-link'
 import { parse } from '@src/parse'
 import { IotaUnit } from '@src/utils'
 
@@ -31,11 +31,14 @@ describe('Function: parse', () => {
         })
     })
 
-    // it('should handle invalid deep links', () => {
-    //     // const TEST_DEEP_LINK_01 = `${TEST_PROTOCOL}:${TEST_CONTEXT}/${TEST_OPERATION}/${TEST_ARGUMENT}?${TEST_QUERY_PARAMS}`
-    //     // expect(() => { throw new InvalidDeepLinkFormatError() }).toThrow(InvalidDeepLinkFormatError)
-    //
-    //     // const TEST_DEEP_LINK_02 = `${TEST_PROTOCOL}:/${TEST_CONTEXT}/${TEST_OPERATION}/${TEST_ARGUMENT}?${TEST_QUERY_PARAMS}`
-    //     // const TEST_DEEP_LINK_NO_PARAMS = `${TEST_PROTOCOL}://${TEST_CONTEXT}/${TEST_OPERATION}/${TEST_ARGUMENT}${TEST_QUERY_PARAMS}`
-    // })
+    it('should handle invalid deep links', () => {
+        const TEST_DEEP_LINK_01 = `${TEST_PROTOCOL}:${TEST_CONTEXT}/${TEST_OPERATION}/${TEST_ARGUMENT}?${TEST_QUERY_PARAMS}`
+        expect(() => parse(TEST_DEEP_LINK_01)).toThrow(InvalidDeepLinkFormatError)
+
+        const TEST_DEEP_LINK_02 = `${TEST_PROTOCOL}://wallett/${TEST_OPERATION}/${TEST_ARGUMENT}?${TEST_QUERY_PARAMS}`
+        expect(() => parse(TEST_DEEP_LINK_02)).toThrow(InvalidDeepLinkFormatError)
+
+        const TEST_DEEP_LINK_03 = `${TEST_PROTOCOL}://${TEST_CONTEXT}/${TEST_OPERATION}/${TEST_ARGUMENT}?test`
+        expect(() => parse(TEST_DEEP_LINK_03)).toThrow(InvalidDeepLinkFormatError)
+    })
 })
