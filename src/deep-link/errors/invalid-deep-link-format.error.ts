@@ -1,5 +1,7 @@
 export class InvalidDeepLinkFormatError extends Error {
-    constructor(reason: string) {
-        super(`Invalid deep link format: ${reason}`)
+    constructor(reason = '') {
+        super(`Invalid deep link format${reason ? ': ' + reason : ''}`)
+
+        Object.setPrototypeOf(this, InvalidDeepLinkFormatError.prototype)
     }
 }

@@ -16,42 +16,56 @@ import {
 } from '@src/deep-link'
 import { InvalidUnitError, IotaUnit } from '@src/utils'
 
-export function parse(uri: DeepLinkUri): IDeepLink {
+import { PATH_PARAM_REGEXP } from './constants'
+
+export function parse(uri: DeepLinkUri): IDeepLink | undefined {
     try {
-        console.log('DEEP LINK URI: ', uri)
+        const uriSplits = uri.split('?')
+        const tokens = new RegExp(PATH_PARAM_REGEXP).exec(uriSplits[0])?.slice(1) ?? []
+        const queryString = uriSplits.length > 1 ? uriSplits[1] : ''
 
-        const regexp = /(^iota|smr):\/\/([a-z]*)\/([a-z]*)\/([a-z0-9]*)/g
-        const regexpResult = regexp.exec(uri) ?? []
-        if (!regexpResult || regexpResult.length < 5) {
-            throw new InvalidDeepLinkFormatError('URI is not fully formed')
-        }
+        return parseRawTokens(tokens, queryString)
+    } catch (error) {
+        console.error(error)
+    }
 
-        const protocolRaw = regexpResult[1]
-        const protocol = validateProtocol(protocolRaw)
+    return undefined
+}
 
-        const contextRaw = regexpResult[2]
-        const context = validateContext(contextRaw)
+function parseRawTokens(tokens: string[], queryString = ''): IDeepLink {
+    const isFullyFormed = tokens.length >= 4
+    if (!isFullyFormed) {
+        throw new InvalidDeepLinkFormatError()
+    }
 
-        const operationRaw = regexpResult[3]
-        const operation = validateOperation(context, operationRaw)
+    const rawProtocol = tokens[0]
+    const rawContext = tokens[1]
+    const rawOperation = tokens[2]
+    const rawArgument = tokens[3]
 
-        const argumentRaw = regexpResult[4]
-        const argument = validateArgument(context, operation, argumentRaw)
+    const protocol = validateProtocol(rawProtocol)
+    const context = validateContext(rawContext)
+    const operation = validateOperation(context, rawOperation)
+    const argument = validateArgument(context, operation, rawArgument)
 
-        const parametersRaw = uri.replace(`${protocolRaw}://${contextRaw}/${operationRaw}/${argumentRaw}?`, '')
-        const parametersCasted = new Object(qs.parse(parametersRaw))
-        const parameters = validateParameters(context, operation, parametersCasted)
+    if (queryString) {
+        const castedParameters = new Object(qs.parse(queryString))
+        const parameters = validateParameters(context, operation, castedParameters)
 
         return <IDeepLink>{
             protocol,
             context,
             operation,
             argument,
-            parameters: { ...parameters },
+            parameters,
         }
-    } catch (err) {
-        console.error(err)
-        throw err
+    } else {
+        return <IDeepLink>{
+            protocol,
+            context,
+            operation,
+            argument,
+        }
     }
 }
 
